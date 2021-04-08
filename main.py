@@ -3,8 +3,10 @@ import json
 import register, add_node, search_node, add_link, get_link_type
 import update_node, delete_node
 import get_children, get_parent
-import node_overview
 import delete_link
+import node_overview
+import get_orphan_node
+
 
 # setting constants up
 app = Flask(__name__)
@@ -274,4 +276,16 @@ def delete_link_api():
     """
     result = delete_link.main(request.values["username"], request.values["password"], request.values["id"])
     return {"result": result}
+
+@app.route("/get_orphan_node", methods=["POST", "GET"])
+def get_orphan_node_api():
+    """
+    See the documentation at delete_link.main
+    Returns
+    -------
+    dict
+        { "result": x } with x is a list of Nodes
+    """
+    result = get_orphan_node.main(request.values["username"], request.values["password"])
+    return { "result": result}
 

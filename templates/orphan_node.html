@@ -1,0 +1,30 @@
+<input type="hidden" id="username" value="{{ username }}"/>
+<input type="hidden" id="password" value="{{ password }}"/>
+<table id="orphan_node">
+    
+</table>
+
+<script type="module">
+    import { dictToURI } from "./static/js/dictToURI.js";
+    let username = document.getElementById("username").value;
+    let password = document.getElementById("password").value;
+    let request = new XMLHttpRequest();
+    request.open("GET", "./get_orphan_node?"+dictToURI({
+        username: username,
+        password: password
+    }));
+    request.onload = (e) => {
+        let result = JSON.parse(request.responseText)["result"];
+        let elem = document.getElementById("orphan_node");
+        result.forEach((node) => {
+            let total = ""
+            total += "<tr>";
+            total += `<td>${(node["type"] == 0) ? "Concept" : "Example"}</td>`;
+            total += `<td><a href='edit_node_page?id=${node["id"]}'>${node["content"]}</a></td>`;
+            total  += `<td>${node["usage_note"]}</td>`;
+            total += "</tr>";
+            elem.innerHTML += total;
+        });
+    }
+    request.send(null);
+</script>
