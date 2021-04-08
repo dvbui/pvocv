@@ -1,0 +1,136 @@
+<title>Add Node</title>
+<input type="hidden" id="username" value="{{ username }}"/>
+<input type="hidden" id="password" value="{{ password }}"/>
+<div id="add_node">
+    <div style="float: left">
+        <h3>Add Node</h3>
+        Node Type: 
+        <select id="add_node_node_type">
+            <option value=0 selected>Concept</option>
+            <option value=1>Example</option>
+        </select>
+        <br>
+        Content: <textarea id="add_node_content"></textarea><br>
+        Usage Note: <textarea id="add_node_usage"></textarea><br>
+        Media: <textarea id="add_node_media"></textarea><br>
+        Keyword: <input type="text" id="add_node_keyword">
+        Source: <input type="text" id="add_node_source">
+        VNese: <input type="text" id="add_node_vn"><br>
+        <button id="add_node_btn">Add</button>
+        <div id="add_status">
+        </div>
+    </div>
+    <div style="float: left">
+        <div id="add_node_similar_node"></div>
+    </div>
+</div>
+
+<script src="https://cdn.ckeditor.com/4.13.0/full/ckeditor.js"></script>
+<script type="module">
+    import { dictToURI } from "./static/js/dictToURI.js";
+    import { setData } from "./static/js/setData.js";
+    let content_box = CKEDITOR.replace('add_node_content');
+    let usage_box = CKEDITOR.replace('add_node_usage');
+    let media_box = CKEDITOR.replace('add_node_media');
+    let add_node_document = document.getElementById("add_node");
+
+    /**
+     * This function is used to clear the input of all boxes
+     * Used after adding a new node
+     */
+    function clearInput() {
+        let list_of_ids = ["add_node_keyword", "add_node_source", "add_node_vn"]
+        list_of_ids.forEach((id) => document.getElementById(id).value = "");
+        let boxes = [content_box, usage_box, media_box]
+        boxes.forEach((box) => setData(box, ""));
+    }
+
+    document.getElementById("add_node_btn").onclick = (e) => {
+        let content = content_box.getData();
+        let usage = usage_box.getData();
+        let media = media_box.getData();
+        let node_type = document.getElementById("add_node_node_type").value;
+        let keyword = document.getElementById("add_node_keyword").value;
+        let source = document.getElementById("add_node_source").value;
+        let vn = document.getElementById("add_node_vn").value;
+        let username = document.getElementById("username").value;
+        let password = document.getElementById("password").value;
+
+        let request = new XMLHttpRequest();
+        request.open("GET", "/add_node?"+dictToURI({
+            "username": username,
+            "password": password,
+            "content": content,
+            "node_type": parseInt(node_type),
+            "keyword": keyword,
+            "usage_note": usage,
+            "vn": vn,
+            "source": source,
+            "media": media
+        }), true);
+        request.onload = (e) => {
+            let result = JSON.parse(request.responseText)["result"];
+            let status = document.getElementById("add_status");
+            if (result) {
+                status.innerHTML = "Your node has been added.";
+                clearInput();
+            }
+            else status.innerHTML = "Error! You may want to re-login!"
+        }
+        request.send(null);
+    }
+
+
+    /**
+     * This function updates the node search result
+     * The data is taken from the input boxes
+     */
+    function update_search() {
+        let content = content_box.getData();
+        let usage = usage_box.getData();
+        let media = media_box.getData();
+        let node_type = document.getElementById("add_node_node_type").value;
+        let keyword = document.getElementById("add_node_keyword").value;
+        let source = document.getElementById("add_node_source").value;
+        let vn = document.getElementById("add_node_vn").value;
+        let username = document.getElementById("username").value;
+        let password = document.getElementById("password").value;
+
+        let request = new XMLHttpRequest();
+        request.open("GET", "/search_node?"+dictToURI({
+            "username": username,
+            "password": password,
+            "content": content,
+            "node_type": parseInt(node_type),
+            "keyword": keyword,
+            "usage_note": usage,
+            "vn": vn,
+            "source": source,
+            "media": media
+        }), true);
+
+        request.onload = (e) => {
+            let result = JSON.parse(request.responseText)["result"];
+            let similar_node = document.getElementById("add_node_similar_node");
+            let total_string = "";
+            result.forEach((row) => {
+                total_string += "<table>";
+                total_string += "<tr><td>" + `<a href='edit_node_page?id=${row["id"]}'>${row["content"]}</a>` + "</td><tr>";
+                total_string += "<tr><td>" + row["usage_note"] + "</td></tr>";
+                total_string += "</table><br>";
+            });
+            similar_node.innerHTML = total_string;
+        }
+        request.send(null);
+    }
+    update_search();
+
+    
+    content_box.on('change', update_search);
+    usage_box.on('change', update_search);
+    media_box.on('change', update_search);
+    let input_names = ["add_node_node_type", "add_node_keyword", "add_node_source", "add_node_vn"];
+    input_names.forEach((name) => {
+        document.getElementById(name).oninput = (e) => update_search();
+    });
+</script>

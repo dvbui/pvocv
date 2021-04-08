@@ -18,7 +18,7 @@ def index():
     The homepage is used when the user is not logged in.
     Returns
     -------
-    dict
+    str
         The login page
     """
     files = ["login.html"]
@@ -27,8 +27,25 @@ def index():
         total += render_template(f)
     return total
 
+@app.route("/add_node_page")
+def add_node_page():
+    """
+    This function represents the Add Node page
+    The user should be logged in when using this page
+    Returns
+    -------
+    str
+        The login page
+    """
+    if not register.check_user_pass(session.get("username"), session.get("password")):
+        return redirect(url_for('index'))
+    total = render_template("pvo.html")
+    total += render_template("add_node.html",username=session.get("username"), password=session.get("password"))
+    total += render_template("footer.html")
+    return total
+
 @app.route("/register", methods=common_methods)
-def register_page():
+def register_api():
     """
     This function registers a user to the database
     username : str
@@ -44,7 +61,7 @@ def register_page():
     return { "result": result }
 
 @app.route("/login", methods=common_methods)
-def login_page():
+def login_api():
     """
     This function logs an user in with the provided info
     (i.e. set the session values for username and password)
@@ -63,6 +80,18 @@ def login_page():
         session["password"] = request.values["password"]
     
     return { "result": result }
+
+@app.route("/logout", methods=common_methods)
+def logout_api():
+    """
+    This function logs the current user out
+    -------
+    dict
+        { "result" : True } if this function runs successfully
+    """
+    session.pop("username", None)
+    session.pop("password", None)
+    return { "result": True }
 
 @app.route("/add_node", methods=common_methods)
 def add_node_api():

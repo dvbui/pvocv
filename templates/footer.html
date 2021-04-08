@@ -1,0 +1,11 @@
+<script>
+    let logout_button = document.getElementById("logout");
+    logout_button.onclick = (e) => {
+        let request = new XMLHttpRequest();
+        request.open("GET", "./logout", true);
+        request.send(null);
+        request.onload = (e) => {
+            window.location.href = "/"
+        }
+    }
+</script>
