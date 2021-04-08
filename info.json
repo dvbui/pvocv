@@ -1,0 +1,7 @@
+{
+    "db_host": "localhost",
+    "db_name": "pvo",
+    "db_user": "root",
+    "db_pass": "",
+    "app_secret_key": ""
+}
