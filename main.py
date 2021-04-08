@@ -4,6 +4,7 @@ import register, add_node, search_node, add_link, get_link_type
 import update_node, delete_node
 import get_children, get_parent
 import node_overview
+import delete_link
 
 # setting constants up
 app = Flask(__name__)
@@ -243,4 +244,16 @@ def node_overview_api():
     result = node_overview.main(request.values["username"], request.values["password"], request.values["id"], 
     [request.values.get("link1","-1"), request.values.get("link2", "-1")])
     return result
+
+@app.route("/delete_link", methods=["POST", "GET"])
+def delete_link_api():
+    """
+    See the documentation at delete_link.main
+    Returns
+    -------
+    dict
+        { "result": True } if succeed
+    """
+    result = delete_link.main(request.values["username"], request.values["password"], request.values["id"])
+    return {"result": result}
 
