@@ -1,6 +1,7 @@
 from flask import *
 import json
 import register, add_node, search_node, add_link, get_link_type
+import update_node, delete_node
 
 # setting constants up
 app = Flask(__name__)
