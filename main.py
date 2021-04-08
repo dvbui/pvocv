@@ -1,6 +1,6 @@
 from flask import *
 import json
-import register, add_node, search_node
+import register, add_node, search_node, add_link, get_link_type
 
 # setting constants up
 app = Flask(__name__)
@@ -35,12 +35,29 @@ def add_node_page():
     Returns
     -------
     str
-        The login page
+
     """
     if not register.check_user_pass(session.get("username"), session.get("password")):
         return redirect(url_for('index'))
     total = render_template("pvo.html")
     total += render_template("add_node.html",username=session.get("username"), password=session.get("password"))
+    total += render_template("footer.html")
+    return total
+
+@app.route("/link_node_page", methods=["POST", "GET"])
+def link_node_page():
+    """
+    This function represents the Link Node page
+    The user should be logged in when using this page
+    Returns
+    -------
+    str
+        
+    """
+    if not register.check_user_pass(session.get("username"), session.get("password")):
+        return redirect(url_for('index'))
+    total = render_template("pvo.html")
+    total += render_template("link_node.html",username=session.get("username"),password=session.get("password"))
     total += render_template("footer.html")
     return total
 
@@ -131,4 +148,31 @@ def search_node_api():
                               request.values.get("keyword",""), request.values.get("usage_note",""),
                               request.values.get("vn",""), request.values.get("source",""),
                               request.values.get("media",""))
+    return {"result": result}
+
+@app.route("/add_link", methods=common_methods)
+def add_link_api():
+    """
+    
+    Returns
+    -------
+    dict
+        { "result" : True } if two nodes are linked successfully,
+        { "result" : False } otherwise
+    """
+    result = add_link.main(request.values["username"], request.values["password"],
+                           request.values["node1"], request.values["node2"],
+                           request.values["type"])
+    return {"result": result}
+
+@app.route("/get_link_type", methods=common_methods)
+def get_link_type_api():
+    """
+    
+    Returns
+    -------
+    dict
+        { "result": x } with x is a list of LinkType objects
+    """
+    result = get_link_type.main(request.values["username"], request.values["password"])
     return {"result": result}

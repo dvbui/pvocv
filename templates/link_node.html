@@ -1,0 +1,189 @@
+<input type="hidden" id="username" value="{{ username }}"/>
+<input type="hidden" id="password" value="{{ password }}"/>
+<div id="link_node">
+    <div id="link_node_search_bar">
+        Parent Type: 
+        <select id="link_node1_type">
+            <option value=0>Concept</option>
+            <option value=1>Example</option>
+        </select>
+        Content: <input type="text" id="link_node1_content">
+        Usage Note: <input type="text" id="link_node1_usage">
+        Media: <input type="text" id="link_node1_media">
+        Keyword: <input type="text" id="link_node1_keyword">
+        Source: <input type="text" id="link_node1_source">
+        VNese: <input type="text" id="link_node1_vn">
+        <br>
+        Child Type: 
+        <select id="link_node2_type">
+            <option value=0>Concept</option>
+            <option value=1>Example</option>
+        </select>
+        Content: <input type="text" id="link_node2_content">
+        Usage Note: <input type="text" id="link_node2_usage">
+        Media: <input type="text" id="link_node2_media">
+        Keyword: <input type="text" id="link_node2_keyword">
+        Source: <input type="text" id="link_node2_source">
+        VNese: <input type="text" id="link_node2_vn">
+    </div>
+    <h3>Parent</h3>
+    <div id="link_node_parent_candidates">
+    </div>
+    <h3>Child</h3>
+    <div id="link_node_child_candidates">
+    </div>
+    <div id="link_node_actual">
+        Link Type: <select id="link_node_type">
+        </select>
+        <button id="link_node_btn">Link</button>
+    </div>
+    <div id="link_node_status">
+    </div>
+</div>
+
+<script type="module">
+    import { dictToURI } from "./static/js/dictToURI.js";
+    // initialize important variables
+    let username = document.getElementById("username").value;
+    let password = document.getElementById("password").value;
+    // 2d array, 1st index is parent / child (parent = 0, child = 1), second index is the key to the data / HTML element
+    let input_data = []; 
+    let input_boxes = [];
+    /**
+     * This function initializes the data in input_data and input_boxes.
+     * This function is used before each search query 
+     */
+    function initData() {
+        input_data = [];
+        input_boxes = [];
+        let info = ["content", "type", "usage", "media", "keyword", "source", "vn"];
+        for (let i=1; i<=2; ++i) {
+            let data = {};
+            let boxes = {};
+            let prefix = `link_node${i}`
+            info.forEach( (f) => {
+                boxes[f] = document.getElementById(prefix+"_"+f);
+                data[f] = boxes[f].value;
+            });
+            input_data.push(data);
+            input_boxes.push(boxes);
+        }
+    }
+
+    /**
+     * This function sets the value for the relation type selector
+     * Should be called once
+     */
+    function restrictSelectGenerator() {
+        let link_node_type = document.getElementById("link_node_type");
+        let request = new XMLHttpRequest();
+        request.open("GET", "/get_link_type?"+dictToURI({
+            "username": username,
+            "password": password
+        }));
+        request.onload = (e) => {
+            let result = JSON.parse(request.responseText)["result"];
+            let total_string = "";
+            result.forEach((row) => {
+                total_string += `<option value=${row["id"]}>${row["rel"]}</option>`;
+            })
+            link_node_type.innerHTML = total_string;
+        };
+        request.send(null);
+    }
+    restrictSelectGenerator();
+
+    initData();
+    
+    
+    let child_result = [];
+    let parent_result = [];
+
+    /**
+     * This function updates the possible children and parents
+     */
+    function updateCandidates() {
+        child_result = [];
+        parent_result = [];
+        let ptrs = [parent_result, child_result];
+        let box_names = ["link_node_parent_candidates", "link_node_child_candidates"];
+        let prefix = ["parent_", "child_"];
+        for (let i=0; i<2; ++i) { 
+            let request = new XMLHttpRequest();
+            request.open("GET", "/search_node?"+dictToURI({
+                "username": username,
+                "password": password,
+                "content": input_data[i]["content"],
+                "node_type": input_data[i]["type"],
+                "keyword": input_data[i]["keyword"],
+                "usage_note": input_data[i]["usage"],
+                "vn": input_data[i]["vn"],
+                "source": input_data[i]["source"],
+                "media": input_data[i]["media"]
+            }));
+            request.onload = (e) => {
+                let result = JSON.parse(request.responseText)["result"];
+                result.forEach((row) => ptrs[i].push(row));
+                let total_string = "<table>";
+                ptrs[i].forEach((row) => {
+                    total_string += "<tr>";
+                    let node_type = (row["type"]==0) ? "Concept" : "Example";
+                    total_string += `<td><input type='checkbox' id='${prefix[i]}node_${row["id"]}'/></td>`;
+                    total_string += "<td>" + node_type + "</td>";
+                    total_string += "<td>" + `<a href='edit_node_page?id=${row["id"]}'>${row["content"]}</a>` + "</td>";
+                    total_string += "<td>" + row["usage_note"] + "</td>";
+                    total_string += "</tr>";
+                });
+                total_string += "</table>";
+                document.getElementById(box_names[i]).innerHTML = total_string;
+            }
+            request.send(null);
+        }
+    }
+
+    updateCandidates();
+
+    // this loop assigns the update event to the textbox
+    for (let i=0; i<2; ++i) {
+        for (const [key,value] of Object.entries(input_boxes[i])) value.oninput = (e) => {
+            initData();
+            updateCandidates();
+        }
+    }
+
+    // this button links two selected nodes together
+    document.getElementById("link_node_btn").onclick = (e) => {
+        let checked_ids = [];
+        /**
+         * This function returns a function that find the checked box an array of boxes
+         * prefix = "parent_" => find in parent section
+         * prefix = "child_" => find in child section
+         */
+        function f(prefix) {
+            return (row) => {
+                let flag = document.getElementById(`${prefix}node_${row["id"]}`).checked;
+                if (flag) checked_ids.push(row["id"]);
+            }
+        }
+        parent_result.forEach(f("parent_"));
+        child_result.forEach(f("child_"));
+
+        // if exactly 2 nodes are selected, link them together
+        // TODO: if two nodes in the same section is selected, they're also linked
+        // we may need to fix this
+        if (checked_ids.length == 2) {
+            let request = new XMLHttpRequest();
+            request.open("GET", "/add_link?"+dictToURI({
+                "username": username,
+                "password": password,
+                "node1": checked_ids[0],
+                "node2": checked_ids[1],
+                "type": document.getElementById("link_node_type").value
+            }));
+            request.send(null);
+            document.getElementById("link_node_status").innerHTML = "Link added";
+        }
+       
+    }
+
+</script>
