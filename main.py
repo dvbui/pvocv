@@ -4,7 +4,7 @@ import register, add_node, search_node, add_link, get_link_type
 import update_node, delete_node
 import get_children, get_parent
 import delete_link
-import node_overview
+import node_overview, pvo_overview
 import get_orphan_node
 
 
@@ -101,6 +101,26 @@ def orphan_node_page():
     total += render_template("orphan_node.html",username=session.get("username"), password=session.get("password"))
     total += render_template("footer.html")
     return total
+
+@app.route("/visualizer", methods=["POST", "GET"])
+def visualizer_page():
+    """
+    This function outputs the graph containing all Nodes and Edges in the user's PVO
+    The user should be logged in when using this page
+    Returns
+    -------
+    str
+        
+    """
+    if not register.check_user_pass(session.get("username"), session.get("password")):
+        return redirect(url_for('index'))
+    total = render_template("pvo.html")
+    total += render_template("visualizer.html",username=session.get("username"), password=session.get("password"))
+    total += render_template("footer.html")
+    return total
+
+
+
 
 @app.route("/register", methods=common_methods)
 def register_api():
@@ -305,4 +325,17 @@ def get_orphan_node_api():
     """
     result = get_orphan_node.main(request.values["username"], request.values["password"])
     return { "result": result}
+
+@app.route("/pvo_overview", methods=["POST", "GET"])
+def pvo_overview_api():
+    """
+    See the documentation at pvo_overview.main
+    Returns
+    -------
+    dict
+        
+    """
+    result = pvo_overview.main(request.values["username"], request.values["password"], 
+    [request.values.get("link1","-1"), request.values.get("link2", "-1")])
+    return result
 

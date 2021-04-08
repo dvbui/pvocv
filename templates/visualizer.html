@@ -1,0 +1,160 @@
+<input type="hidden" id="username" value="{{ username }}"/>
+<input type="hidden" id="password" value="{{ password }}"/>
+<div id="visualizer">
+    <select id="link_node_type_1">
+    </select>
+    <select id="link_node_type_2">
+    </select>
+    <div id="mynetwork">
+
+    </div>
+</div>
+<style type="text/css">
+    #mynetwork {
+        width: 1000;
+        height: 1000;
+        border: 1px solid lightgray;
+    }
+</style>
+<script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+<script type="module">
+    import { dictToURI } from "./static/js/dictToURI.js";
+    let username = document.getElementById("username").value;
+    let password = document.getElementById("password").value;
+    
+    /**
+     * This function initiates a DOM object using the data of a Node
+     * TODO: combine this function with the one in edit_node.html
+     * @param {*} node_data - a Node dictionary whose structure could be found in OBJECT.md 
+     * @param {*} obj - a HTMLElement where the DOM would be inserted. The function would change obj. 
+     */
+    function generateNodeDOM(node_data, obj) {
+        obj.innerHTML = ""
+        if (node_data["type"] == 0) {
+            obj.innerHTML+="<h1>Concept</h1>";
+            obj.innerHTML+=`<h2>${node_data["content"]}</h2>`;
+        }
+        else {
+            obj.innerHTML+="<h1>Example</h1>";
+            obj.innerHTML+=node_data["content"];
+        }
+        obj.innerHTML+=node_data["usage_note"];
+        obj.innerHTML+=node_data["media"];
+        if (node_data["keyword"]!="") obj.innerHTML+=`<p>Keyword(s): ${node_data["keyword"]}</p>`;
+        if (node_data["source"]!="") obj.innerHTML+=`<p>Source: ${node_data["source"]}</p>`;
+        if (node_data["vn"]!="") obj.innerHTML+=`<p>Nghĩa tiếng Việt: ${node_data["vn"]}</p>`;
+    }
+
+    /**
+     * This function generates the graph containing the Node with id=node_id
+     * Note that this function is a little bit different than the one in edit_node.html
+     * because there's no main node
+     * TODO: combine these functions
+     * @param {*} node_data - a list of Nodes. The structure of each Node is described in OBJECT.md
+     * @param {*} edge_data - a list of Edges. The structure of each Edge is described in OBJECT.md  
+     */
+    function generateGraph(node_data, edge_data) {
+        console.log(node_data, edge_data);
+        let nodes = [];
+        
+        node_data.forEach(element => {
+            let node_color = (element["type"]==0) ? " #fdee00" : "lightblue";
+            let node_title = document.createElement("div", {"width": "200px"});
+            generateNodeDOM(element, node_title);
+            nodes.push({
+                id: element["id"],
+                label: element["content_text"],
+                color: node_color,
+                title: node_title
+            });
+        });
+
+        nodes = new vis.DataSet(nodes);
+
+        // create an array with edges
+        let edges = [];
+        edge_data.forEach((edge) => {
+            edges.push({
+                from: edge["node1"]["id"],
+                to: edge["node2"]["id"],
+                label: edge["type"]["rel"],
+                arrows: "to"
+            });
+        })
+        edges = new vis.DataSet(edges);
+
+        // create a network
+        let container = document.getElementById("mynetwork");
+        let data = {
+            nodes: nodes,
+            edges: edges
+        };
+        
+        let options = {}
+        let network = new vis.Network(container, data, options);
+
+    }
+
+    /**
+     * This function initializes the graph
+     * This is a more simplified version of the one in edit_node.html
+     * link_type_1 and link_type_2 specify the types of relations that can be used to find related Nodes
+     * If one of them is undefined, all relations would be used
+     * TODO: combine functions
+     * @param {*} link_type_1
+     * @param {*} link_type_2
+     */
+    function initInput(link_type_1, link_type_2) {
+    	let selector_names = ["link_node_type_1", "link_node_type_2"];
+    	if (link_type_1 == undefined) link_type_1 = document.getElementById(selector_names[0]).value;
+        if (link_type_2 == undefined) link_type_2 = document.getElementById(selector_names[1]).value;
+        let request = new XMLHttpRequest();
+        request.open("GET", "/pvo_overview?"+dictToURI({
+            "username": username,
+            "password": password,
+            "link1": link_type_1,
+            "link2": link_type_2
+        }));
+        request.onload = (e) => {
+            let result = JSON.parse(request.responseText);
+            generateGraph(result["nodes"], result["edges"]);
+        }
+        request.send(null);
+    }
+
+
+    /**
+     * This function sets the value for the relation type selectors
+     * TODO: merge this function with the one in add_node.html
+     */
+    function restrictSelectGenerator() {
+        let selector_names = ["link_node_type_1", "link_node_type_2"];
+        selector_names.forEach((name) => {
+            let link_node_type = document.getElementById(name);
+            let request = new XMLHttpRequest();
+            request.open("GET", "/get_link_type?"+dictToURI({
+                "username": username,
+                "password": password
+            }));
+            request.onload = (e) => {
+                let result = JSON.parse(request.responseText)["result"];
+                let total_string = "";
+                total_string += `<option value=-1>ALL</option>`
+                result.forEach((row) => {
+                    total_string += `<option value=${row["id"]}>${row["rel"]}</option>`;
+                })
+                link_node_type.innerHTML = total_string;
+            };
+            request.send(null);
+        });
+
+        selector_names.forEach((name) => {
+            let link_node_type = document.getElementById(name);
+            link_node_type.onchange = (e) => initInput();
+        });
+    }
+
+    restrictSelectGenerator();
+    initInput(-1,-1);
+</script>
