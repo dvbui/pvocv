@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Apr 08, 2021 at 11:57 PM
+-- Generation Time: Apr 09, 2021 at 12:04 AM
 -- Server version: 10.4.17-MariaDB
 -- PHP Version: 8.0.1
 
@@ -65,6 +65,24 @@ CREATE TABLE `rel_type` (
   `rel` text COLLATE utf8_unicode_ci NOT NULL,
   `user` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `rel_type`
+--
+
+INSERT INTO `rel_type` (`id`, `rel`, `user`) VALUES
+(1, 'Association', NULL),
+(2, 'Type of', NULL),
+(3, 'Same concept', NULL),
+(4, 'Related concepts', NULL),
+(5, 'Doer of action', NULL),
+(6, 'Receiver of action', NULL),
+(7, 'Action', NULL),
+(8, 'Described by', NULL),
+(9, 'Describing', NULL),
+(10, 'Idiom', NULL),
+(11, 'Related phrases', NULL),
+(12, 'Temporary uncategorized', NULL);
 
 -- --------------------------------------------------------
 
@@ -132,7 +150,7 @@ ALTER TABLE `node`
 -- AUTO_INCREMENT for table `rel_type`
 --
 ALTER TABLE `rel_type`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `user`
