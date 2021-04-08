@@ -176,3 +176,20 @@ def get_link_type_api():
     """
     result = get_link_type.main(request.values["username"], request.values["password"])
     return {"result": result}
+
+@app.route("/update_node", methods=common_methods)
+def update_node_api():
+    """
+    
+    Returns
+    -------
+    dict
+        { "result": True } if the Node is updated successfully 
+    """
+    result = update_node.main(request.values["username"], request.values["password"],
+                              request.values.get("id",None), 
+                              request.values.get("content",""), request.values.get("node_type",""), 
+                              request.values.get("keyword",""), request.values.get("usage_note",""),
+                              request.values.get("vn",""), request.values.get("source",""),
+                              request.values.get("media",""))
+    return { "result": result }
