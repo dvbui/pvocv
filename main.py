@@ -65,6 +65,24 @@ def link_node_page():
     total += render_template("footer.html")
     return total
 
+@app.route("/edit_node_page", methods=["POST", "GET"])
+def edit_node_page():
+    """
+    This function represents the Edit Node page
+    The user should be logged in when using this page
+    The id of the Node should also be given
+    Returns
+    -------
+    str
+        
+    """
+    if not register.check_user_pass(session.get("username"), session.get("password")) or request.values.get("id","")=="":
+        return redirect(url_for('index'))
+    total = render_template("pvo.html")
+    total += render_template("edit_node.html",username=session.get("username"), password=session.get("password"), node_id=request.values.get("id", ""))
+    total += render_template("footer.html")
+    return total
+
 @app.route("/register", methods=common_methods)
 def register_api():
     """

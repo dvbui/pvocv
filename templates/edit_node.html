@@ -1,0 +1,307 @@
+<input type="hidden" id="username" value="{{ username }}"/>
+<input type="hidden" id="password" value="{{ password }}"/>
+<input type="hidden" id="node_id" value="{{ node_id }}"/>
+<div id="edit_node">
+    <div style="float: left">
+        <h3>Edit Node</h3>
+        Node Type: 
+        <select id="edit_node_node_type">
+            <option value=0>Concept</option>
+            <option value=1>Example</option>
+        </select><br>
+        Content: <textarea id="edit_node_content"></textarea><br>
+        Usage Note: <textarea id="edit_node_usage"></textarea><br>
+        Media: <textarea id="edit_node_media"></textarea><br>
+        Keyword: <input type="text" id="edit_node_keyword">
+        Source: <input type="text" id="edit_node_source">
+        VNese: <input type="text" id="edit_node_vn"><br>
+        <button id="edit_node_btn">Update</button>
+        <button id="delete_node_btn" style="background-color: red;">Delete</button>
+        <div id="edit_status">
+        </div>
+    </div>
+    <div id="node_overview">
+    </div>
+    <select id="link_node_type_1">
+    </select>
+    <select id="link_node_type_2">
+    </select>
+    <h2>Parents</h2>
+    
+    <table id="node_parents">
+    </table>
+    <h2>Children</h2>
+    
+    <table id="node_children">
+    </table>
+    <div id="edit_node_network" style="float: left">
+        <h3>Visualization</h3> 
+        <div id="mynetwork" style="float: left">
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.ckeditor.com/4.13.0/full/ckeditor.js"></script>
+<script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+<style type="text/css">
+    #mynetwork {
+        width: 500;
+        height: 500;
+        border: 1px solid lightgray;
+    }
+</style>
+
+<script type="module">
+    import { dictToURI } from "./static/js/dictToURI.js";
+    import { setData } from "./static/js/setData.js";
+    import { searchNode } from "./static/js/searchNode.js";
+    // initializes important variables and objects
+    let content_box = CKEDITOR.replace('edit_node_content');
+    let usage_box = CKEDITOR.replace('edit_node_usage');
+    let media_box = CKEDITOR.replace('edit_node_media');
+
+    let node_id = document.getElementById("node_id").value;
+    let username = document.getElementById("username").value;
+    let password = document.getElementById("password").value;
+    
+    let node_type_box = document.getElementById("edit_node_node_type");
+    let keyword_box = document.getElementById("edit_node_keyword");
+    let source_box = document.getElementById("edit_node_source");
+    let vn_box = document.getElementById("edit_node_vn");
+
+    /**
+     * This function initiates a DOM object using the data of a Node
+     * @param {*} node_data - a Node dictionary whose structure could be found in OBJECT.md 
+     * @param {*} obj - a HTMLElement where the DOM would be inserted. The function would change obj.  
+     */
+    function generateNodeDOM(node_data, obj) {
+        obj.innerHTML = ""
+        if (node_data["type"] == 0) {
+            obj.innerHTML+="<h1>Concept</h1>";
+            obj.innerHTML+=`<h2>${node_data["content"]}</h2>`;
+        }
+        else {
+            obj.innerHTML+="<h1>Example</h1>";
+            obj.innerHTML+=node_data["content"];
+        }
+        obj.innerHTML+=node_data["usage_note"];
+        obj.innerHTML+=node_data["media"];
+        if (node_data["keyword"]!="") obj.innerHTML+=`<p>Keyword(s): ${node_data["keyword"]}</p>`;
+        if (node_data["source"]!="") obj.innerHTML+=`<p>Source: ${node_data["source"]}</p>`;
+        if (node_data["vn"]!="") obj.innerHTML+=`<p>Nghĩa tiếng Việt: ${node_data["vn"]}</p>`;
+    }
+
+    /**
+     * This function generates the graph containing the Node with id=node_id
+     * @param {*} node_data - a list of Nodes. The structure of each Node is described in OBJECT.md
+     * @param {*} edge_data - a list of Edges. The structure of each Edge is described in OBJECT.md  
+     */
+    function generateGraph(node_data, edge_data) {
+
+        let nodes = [];
+        
+        node_data.forEach(element => {
+            let node_color = (element["type"]==0) ? " #fdee00" : "lightblue";
+            if (element["id"] == node_id) node_color = (element["type"]==0) ? "orange" : "cyan";
+            let node_title = document.createElement("div", {"width": "200px"});
+            generateNodeDOM(element, node_title);
+            nodes.push({
+                id: element["id"],
+                label: element["content_text"],
+                color: node_color,
+                title: node_title
+            });
+        });
+
+        nodes = new vis.DataSet(nodes);
+
+        // create an array with edges
+        let edges = [];
+        edge_data.forEach((edge) => {
+            edges.push({
+                from: edge["node1"]["id"],
+                to: edge["node2"]["id"],
+                label: edge["type"]["rel"],
+                arrows: "to"
+            });
+        })
+        edges = new vis.DataSet(edges);
+
+        // create a network
+        let container = document.getElementById("mynetwork");
+        let data = {
+            nodes: nodes,
+            edges: edges
+        };
+        
+        let options = {}
+        let network = new vis.Network(container, data, options);
+
+    }
+
+    /**
+     * This function initializes the screen of Edit Node
+     * link_type_1 and link_type_2 specify the types of relations that can be used to find related Nodes
+     * If one of them is undefined, all relations would be used
+     * @param {*} link_type_1
+     * @param {*} link_type_2
+     */
+    function initInput(link_type_1, link_type_2) {
+    	let selector_names = ["link_node_type_1", "link_node_type_2"];
+    	if (link_type_1 == undefined) link_type_1 = document.getElementById(selector_names[0]).value;
+        if (link_type_2 == undefined) link_type_2 = document.getElementById(selector_names[1]).value;
+        let request = new XMLHttpRequest();
+        request.open("GET", "/node_overview?"+dictToURI({
+            "username": username,
+            "password": password,
+            "id": node_id,
+            "link1": link_type_1,
+            "link2": link_type_2
+        }));
+        request.onload = (e) => {
+            let result = JSON.parse(request.responseText);
+            let row = result["node_info"];
+            setData(content_box, row["content"]);
+            setData(usage_box, row["usage_note"]);
+            setData(media_box, row["media"]);
+            node_type_box.value = row["type"];
+            keyword_box.value = row["keyword"];
+            source_box.value = row["source"];
+            vn_box.value = row["vn"];
+            generateNodeDOM(row, document.getElementById("node_overview"));
+
+            /**
+             * This function generates a row containing the information of a child / parent node,
+             * and put it into elem
+             * @param {*} elem - a HTMLElement
+             * @param {*} node_info - the info of a node
+             * @param {*} edge_info - the info of the edge connecting the node to the main node
+             */
+            function f(elem, node_info, edge_info) {
+                let total = "";
+                total+=`<tr><td>(${edge_info["type"]["rel"]})</td>`;
+                total+=`<td><a href='edit_node_page?id=${node_info["id"]}'>${node_info["content"]}</a></td>`;
+                total+=`<td><button type='button' id='del_link_${edge_info["id"]}'>Unlink</button></td>`
+                total+="</tr>";
+                elem.innerHTML+=total;
+            }
+
+            /**
+             * This function assigns the onclick action to a Unlink button
+             * @param {*} edge_info - the info of an edge connecting the main node with an another node.
+             */
+            function g(edge_info) {
+                let button = document.getElementById(`del_link_${edge_info["id"]}`);
+                button.onclick = () => {
+                    let request = new XMLHttpRequest();
+                    request.open("GET", "/delete_link?"+dictToURI({
+                        "username": username,
+                        "password": password,
+                        "id": edge_info["id"]
+                    }));
+                    request.send(null);
+                    request.onload = () => window.location.href = `./edit_node_page?id=${node_id}`;
+                };
+            }
+
+            let children = result["children"];
+            let parent = result["parent"];
+            document.getElementById("node_parents").innerHTML = "";
+            document.getElementById("node_children").innerHTML = "";
+            parent.forEach((edge) => f(document.getElementById("node_parents"), edge["node1"], edge));
+            parent.forEach((edge) => g(edge));
+            children.forEach((edge) => f(document.getElementById("node_children"), edge["node2"], edge));
+            children.forEach((edge) => g(edge));
+
+            generateGraph(result["nodes"], result["edges"]);
+        }
+        request.send(null);
+    }
+
+    /**
+     * This function sets the value for the relation type selectors
+     * TODO: merge this function with the one in add_node.html
+     */
+    function restrictSelectGenerator() {
+        let selector_names = ["link_node_type_1", "link_node_type_2"];
+        selector_names.forEach((name) => {
+            let link_node_type = document.getElementById(name);
+            let request = new XMLHttpRequest();
+            request.open("GET", "/get_link_type?"+dictToURI({
+                "username": username,
+                "password": password
+            }));
+            request.onload = (e) => {
+                let result = JSON.parse(request.responseText)["result"];
+                let total_string = "";
+                total_string += `<option value=-1>ALL</option>`
+                result.forEach((row) => {
+                    total_string += `<option value=${row["id"]}>${row["rel"]}</option>`;
+                })
+                link_node_type.innerHTML = total_string;
+            };
+            request.send(null);
+        });
+
+        selector_names.forEach((name) => {
+            let link_node_type = document.getElementById(name);
+            link_node_type.onchange = (e) => initInput();
+        });
+    }
+
+    restrictSelectGenerator();
+    initInput(-1,-1);
+
+    document.getElementById("edit_node_btn").onclick = (e) => {
+        let content = content_box.getData();
+        let usage = usage_box.getData();
+        let media = media_box.getData();
+        let node_type = node_type_box.value;
+        let keyword = keyword_box.value;
+        let source = source_box.value;
+        let vn = vn_box.value;
+
+        let request = new XMLHttpRequest();
+        request.open("GET", "/update_node?"+dictToURI({
+            "username": username,
+            "password": password,
+            "id": node_id,
+            "content": content,
+            "node_type": parseInt(node_type),
+            "keyword": keyword,
+            "usage_note": usage,
+            "vn": vn,
+            "source": source,
+            "media": media
+        }), true);
+        request.onload = (e) => {
+            let result = JSON.parse(request.responseText)["result"];
+            let status = document.getElementById("edit_status");
+            if (result) {
+                status.innerHTML = "Your node has been updated.";
+                initInput();
+            }
+            else status.innerHTML = "Error! You may want to re-login!";
+            nodeOverview(username, password, node_id, document.getElementById("node_overview"), generateNetwork, true);
+        }
+        request.send(null);
+    }
+
+    document.getElementById("delete_node_btn").onclick = (e) => {
+        let request = new XMLHttpRequest();
+        request.open("GET", "/delete_node?"+dictToURI({
+            "username": username,
+            "password": password,
+            "id": node_id,
+        }), true);
+        request.onload = (e) => {
+            let result = JSON.parse(request.responseText)["result"];
+            if (result) {
+                window.location.href = "./pvo"
+            }
+        }
+        request.send(null);
+    }
+</script>
