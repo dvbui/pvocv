@@ -85,6 +85,23 @@ def edit_node_page():
     total += render_template("footer.html")
     return total
 
+@app.route("/orphan_node_page")
+def orphan_node_page():
+    """
+    This function represents the Orphan Node page
+    The user should be logged in when using this page
+    Returns
+    -------
+    str
+        
+    """
+    if not register.check_user_pass(session.get("username"), session.get("password")):
+        return redirect(url_for('index'))
+    total = render_template("pvo.html")
+    total += render_template("orphan_node.html",username=session.get("username"), password=session.get("password"))
+    total += render_template("footer.html")
+    return total
+
 @app.route("/register", methods=common_methods)
 def register_api():
     """
