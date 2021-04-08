@@ -1,0 +1,49 @@
+<input type="hidden" id="username" value="{{ username }}"/>
+<input type="hidden" id="password" value="{{ password }}"/>
+<div id="backup_div">
+    File 1: <textarea id="node_info"></textarea><br>
+    File 2: <textarea id="edge_info"></textarea><br>
+    <button id="backup_load">Load</button>
+    <div id="load_status">
+
+    </div>
+</div>
+<script type="module">
+    import { dictToURI } from "./static/js/dictToURI.js";
+    // initializes important values
+    let username = document.getElementById("username").value;
+    let password = document.getElementById("password").value;
+
+    // initializes File 1 and File 2
+    let request = new XMLHttpRequest();
+    request.open("GET", "./get_backup?"+dictToURI({
+        username: username,
+        password: password
+    }));
+    request.onload = (e) => {
+        let result = JSON.parse(request.responseText);
+        document.getElementById("node_info").innerHTML = result["node_info"];
+        document.getElementById("edge_info").innerHTML = result["edge_info"];
+    }
+    request.send(null);
+
+    // load the backup files
+    document.getElementById("backup_load").onclick = (e) => {
+        let node_info = document.getElementById("node_info").innerHTML;
+        let edge_info = document.getElementById("edge_info").innerHTML;
+        request.open("GET", "./load_backup?"+dictToURI({
+            username: username,
+            password: password,
+            edge_info: edge_info,
+            node_info: node_info
+        }));
+        request.onload = (e) => {
+            let result = JSON.parse(request.responseText)["result"];
+            if (result)
+                document.getElementById("load_status").innerHTML = "Your data have been loaded";
+            else
+                document.getElementById("load_status").innerHTML = "Error!";
+        }
+        request.send(null);
+    }
+</script>

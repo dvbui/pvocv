@@ -6,6 +6,7 @@ import get_children, get_parent
 import delete_link
 import node_overview, pvo_overview
 import get_orphan_node
+import load_backup, get_backup
 
 
 # setting constants up
@@ -118,6 +119,25 @@ def visualizer_page():
     total += render_template("visualizer.html",username=session.get("username"), password=session.get("password"))
     total += render_template("footer.html")
     return total
+
+@app.route("/backup", methods=["POST", "GET"])
+def backup_page():
+    """
+    This function outputs the backup page
+    The user should be logged in when using this page
+    Returns
+    -------
+    str
+        
+    """
+    if not register.check_user_pass(session.get("username"), session.get("password")):
+        return redirect(url_for('index'))
+    total = render_template("pvo.html")
+    total += render_template("backup.html",username=session.get("username"), password=session.get("password"))
+    total += render_template("footer.html")
+    return total
+
+
 
 
 
@@ -302,7 +322,7 @@ def node_overview_api():
     [request.values.get("link1","-1"), request.values.get("link2", "-1")])
     return result
 
-@app.route("/delete_link", methods=["POST", "GET"])
+@app.route("/delete_link", methods=common_methods)
 def delete_link_api():
     """
     See the documentation at delete_link.main
@@ -314,7 +334,7 @@ def delete_link_api():
     result = delete_link.main(request.values["username"], request.values["password"], request.values["id"])
     return {"result": result}
 
-@app.route("/get_orphan_node", methods=["POST", "GET"])
+@app.route("/get_orphan_node", methods=common_methods)
 def get_orphan_node_api():
     """
     See the documentation at delete_link.main
@@ -326,7 +346,7 @@ def get_orphan_node_api():
     result = get_orphan_node.main(request.values["username"], request.values["password"])
     return { "result": result}
 
-@app.route("/pvo_overview", methods=["POST", "GET"])
+@app.route("/pvo_overview", methods=common_methods)
 def pvo_overview_api():
     """
     See the documentation at pvo_overview.main
@@ -339,3 +359,26 @@ def pvo_overview_api():
     [request.values.get("link1","-1"), request.values.get("link2", "-1")])
     return result
 
+@app.route("/get_backup", methods=common_methods)
+def get_backup_api():
+    """
+    See the documentation at get_backup.main
+    Returns
+    -------
+    dict
+        
+    """
+    result = get_backup.main(request.values["username"], request.values["password"])
+    return result
+
+@app.route("/load_backup", methods=common_methods)
+def load_backup_api():
+    """
+    See the documentation at load_backup.main
+    Returns
+    -------
+    dict
+        
+    """
+    result = load_backup.main(request.values["username"], request.values["password"], request.values["node_info"], request.values["edge_info"])
+    return {"result": result}
