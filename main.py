@@ -3,6 +3,7 @@ import json
 import register, add_node, search_node, add_link, get_link_type
 import update_node, delete_node
 import get_children, get_parent
+import node_overview
 
 # setting constants up
 app = Flask(__name__)
@@ -208,26 +209,38 @@ def delete_node_api():
     result = delete_node.main(request.values["username"], request.values["password"], request.values["id"])
     return {"result": result}
 
-@app.route("/get_children", methods=["POST", "GET"])
+"""
+@app.route("/get_children", methods=common_methods)
 def get_children_api():
-    """
     See the documentation at get_children.main
     Returns
     -------
     dict
         { "result": x } with x is a list of LinkType objects
-    """
     result = get_children.main(request.values["username"], request.values["password"], request.values["id"])
     return {"result": result}
 
-@app.route("/get_parent", methods=["POST", "GET"])
+@app.route("/get_parent", methods=common_methods)
 def get_parent_api():
-    """
     See the documentation at get_parent.main
     Returns
     -------
     dict
         { "result": x } with x is a list of LinkType objects
-    """
     result = get_parent.main(request.values["username"], request.values["password"], request.values["id"])
     return {"result": result}
+"""
+
+@app.route("/node_overview", methods=common_methods)
+def node_overview_api():
+    """
+    See the documentation at node_overview.main
+    Returns
+    -------
+    dict
+        The structure is described at node_overview.main
+    """
+    result = node_overview.main(request.values["username"], request.values["password"], request.values["id"], 
+    [request.values.get("link1","-1"), request.values.get("link2", "-1")])
+    return result
+
