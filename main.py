@@ -1,6 +1,6 @@
 from flask import *
 import json
-import register
+import register, add_node, search_node
 
 # setting constants up
 app = Flask(__name__)
@@ -52,10 +52,10 @@ def login_page():
         The username
     password : str
         The non-encoded password
-        Returns
-        -------
-        dict
-            { "result" : True } if the login attempt is valid, otherwise { "result" : False }
+    Returns
+    -------
+    dict
+        { "result" : True } if the login attempt is valid, otherwise { "result" : False }
     """
     result = register.check_user_pass(request.values["username"], request.values["password"])
     if result:
@@ -63,3 +63,43 @@ def login_page():
         session["password"] = request.values["password"]
     
     return { "result": result }
+
+@app.route("/add_node", methods=common_methods)
+def add_node_api():
+    """
+    This function adds a node into the database with the provided info
+    username : str
+        The username
+    password : str
+        The non-encoded password
+    Returns
+    -------
+    dict
+        { "result" : True } if the login attempt is valid, otherwise { "result" : False }
+    """
+    result = add_node.main(request.values["username"], request.values["password"],
+                           request.values["content"], request.values["node_type"],
+                           request.values["keyword"], request.values["usage_note"], 
+                           request.values["vn"], request.values["source"], 
+                           request.values["media"])
+
+    return { "result": result }
+
+@app.route("/search_node", methods=common_methods)
+def search_node_api():
+    """
+    This function finds nodes into the database with the provided info
+    Returns
+    -------
+    dict
+        { "result" : x } with x is a list of Nodes that 
+        match the provided info
+        Node structure is described in OBJECT.md 
+    """
+    result = search_node.main(request.values["username"], request.values["password"],
+                              request.values.get("id",None), 
+                              request.values.get("content",""), request.values.get("node_type",None), 
+                              request.values.get("keyword",""), request.values.get("usage_note",""),
+                              request.values.get("vn",""), request.values.get("source",""),
+                              request.values.get("media",""))
+    return {"result": result}
