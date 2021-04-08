@@ -2,6 +2,7 @@ from flask import *
 import json
 import register, add_node, search_node, add_link, get_link_type
 import update_node, delete_node
+import get_children, get_parent
 
 # setting constants up
 app = Flask(__name__)
@@ -154,7 +155,7 @@ def search_node_api():
 @app.route("/add_link", methods=common_methods)
 def add_link_api():
     """
-    
+    See the documentation at add_link.main
     Returns
     -------
     dict
@@ -169,7 +170,7 @@ def add_link_api():
 @app.route("/get_link_type", methods=common_methods)
 def get_link_type_api():
     """
-    
+    See the documentation at get_link_type.main
     Returns
     -------
     dict
@@ -181,7 +182,7 @@ def get_link_type_api():
 @app.route("/update_node", methods=common_methods)
 def update_node_api():
     """
-    
+    See the documentation at update_node.main
     Returns
     -------
     dict
@@ -194,3 +195,39 @@ def update_node_api():
                               request.values.get("vn",""), request.values.get("source",""),
                               request.values.get("media",""))
     return { "result": result }
+
+@app.route("/delete_node", methods=common_methods)
+def delete_node_api():
+    """
+    See the documentation at delete_node.main
+    Returns
+    -------
+    dict
+        { "result": True } if succeed
+    """
+    result = delete_node.main(request.values["username"], request.values["password"], request.values["id"])
+    return {"result": result}
+
+@app.route("/get_children", methods=["POST", "GET"])
+def get_children_api():
+    """
+    See the documentation at get_children.main
+    Returns
+    -------
+    dict
+        { "result": x } with x is a list of LinkType objects
+    """
+    result = get_children.main(request.values["username"], request.values["password"], request.values["id"])
+    return {"result": result}
+
+@app.route("/get_parent", methods=["POST", "GET"])
+def get_parent_api():
+    """
+    See the documentation at get_parent.main
+    Returns
+    -------
+    dict
+        { "result": x } with x is a list of LinkType objects
+    """
+    result = get_parent.main(request.values["username"], request.values["password"], request.values["id"])
+    return {"result": result}

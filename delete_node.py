@@ -12,6 +12,12 @@ def main(username, password, node_id):
 
         node_id : str
             (int is OK)
+    Returns
+    -------
+    bool
+        True if succeed
+        False if the provided username, password are incorrect
+        False if the user does not own the node
     """
     # check if the provided username and password are valid
     if not register.check_user_pass(username, password):
