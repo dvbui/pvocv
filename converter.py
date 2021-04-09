@@ -1,7 +1,10 @@
 from access_parser import AccessParser
 from striprtf.striprtf import rtf_to_text
 import pandas as pd
+# path to the database file
 database_path = input("File: ")
+
+# load tables in database
 db = AccessParser(database_path)
 concept_table = db.parse_table("tblWord")
 print(concept_table)
@@ -31,6 +34,7 @@ real_nodes = {
     "media": []
 }
 
+## convert concepts into nodes
 for i in range(len(concept_table["ID"])):
     real_nodes["id"].append(concept_table["ID"][i])
     real_nodes["user"].append(0)
@@ -43,6 +47,7 @@ for i in range(len(concept_table["ID"])):
     real_nodes["source"].append("")
     real_nodes["media"].append("")
 
+## convert examples into nodes. ID of node = ID of old example + 10^9 
 for i in range(len(example_table["ExampleID"])):
     real_nodes["id"].append(example_table["ExampleID"][i] + 10**9)
     real_nodes["user"].append(0)
@@ -55,9 +60,12 @@ for i in range(len(example_table["ExampleID"])):
     real_nodes["source"].append("")
     real_nodes["media"].append("")
 
+# write out the first file
 node_df = pd.DataFrame(real_nodes)
 with open("file1.csv", "w") as f:
     f.write(node_df.to_csv(index=False))
+    
+# convert the relations into edges
 
 real_edges = {
     "id": [],
@@ -106,6 +114,7 @@ for i in range(len(example_relation_table["wID"])):
         real_edges["type"].append(12)
 
 
+# write out the second file
 edge_df = pd.DataFrame(real_edges)
 with open("file2.csv", "w") as f:
     f.write(edge_df.to_csv(index=False))
