@@ -298,7 +298,7 @@
         request.onload = (e) => {
             let result = JSON.parse(request.responseText)["result"];
             if (result) {
-                window.location.href = "./pvo"
+                window.location.href = "./add_node_page"
             }
         }
         request.send(null);
