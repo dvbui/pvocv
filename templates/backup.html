@@ -22,15 +22,15 @@
     }));
     request.onload = (e) => {
         let result = JSON.parse(request.responseText);
-        document.getElementById("node_info").innerHTML = result["node_info"];
-        document.getElementById("edge_info").innerHTML = result["edge_info"];
+        document.getElementById("node_info").value = result["node_info"];
+        document.getElementById("edge_info").value = result["edge_info"];
     }
     request.send(null);
 
     // load the backup files
     document.getElementById("backup_load").onclick = (e) => {
-        let node_info = document.getElementById("node_info").innerHTML;
-        let edge_info = document.getElementById("edge_info").innerHTML;
+        let node_info = document.getElementById("node_info").value;
+        let edge_info = document.getElementById("edge_info").value;
         request.open("GET", "./load_backup?"+dictToURI({
             username: username,
             password: password,
