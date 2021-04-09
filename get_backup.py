@@ -23,7 +23,19 @@ def main(username, password):
         return False
     user_id = register.get_user_id(username)
     all_nodes = search_node.main(username, password, node_type=0) + search_node.main(username, password, node_type=1)
-    real_nodes = {}
+    # ensure that a correct csv file would be produced
+    real_nodes = {
+        "id": [],
+        "user": [],
+        "content": [],
+        "content_text": [],
+        "type": [],
+        "keyword": [],
+        "usage_note": [],
+        "vn": [],
+        "source": [],
+        "media": []
+    }
     for node in all_nodes:
         for key in node:
             if key not in real_nodes:

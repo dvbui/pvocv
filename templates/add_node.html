@@ -26,7 +26,7 @@
 </div>
 
 <script src="https://cdn.ckeditor.com/4.13.0/full/ckeditor.js"></script>
-<script type="module">
+<script type="module" defer>
     import { dictToURI } from "./static/js/dictToURI.js";
     import { setData } from "./static/js/setData.js";
     let content_box = CKEDITOR.replace('add_node_content');
@@ -35,9 +35,9 @@
     let add_node_document = document.getElementById("add_node");
 
     /**
-     * This function is used to clear the input of all boxes
-     * Used after adding a new node
-     */
+    * This function is used to clear the input of all boxes
+    * Used after adding a new node
+    */
     function clearInput() {
         let list_of_ids = ["add_node_keyword", "add_node_source", "add_node_vn"]
         list_of_ids.forEach((id) => document.getElementById(id).value = "");
@@ -82,9 +82,9 @@
 
 
     /**
-     * This function updates the node search result
-     * The data is taken from the input boxes
-     */
+    * This function updates the node search result
+    * The data is taken from the input boxes
+    */
     function update_search() {
         let content = content_box.getData();
         let usage = usage_box.getData();
