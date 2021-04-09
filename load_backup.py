@@ -8,8 +8,8 @@ import search_node
 import add_link
 from bs4 import BeautifulSoup
 
+"""
 def beautify(s):
-    """
     This function de-escaped a string
     Parameters
     ----------
@@ -19,9 +19,9 @@ def beautify(s):
     -------
         str
             A de-escaped string
-    """
     soup = BeautifulSoup(s, 'html.parser')
     return soup.get_text()
+"""
 
 def update_node(username, password, node):
     """
@@ -102,8 +102,6 @@ def main(username, password, node_info, edge_info):
         for i in node:
             if node[i] is None:
                 node[i] = ""
-            if isinstance(node[i], str):
-                node[i] = beautify(node[i])
         
         nodes[node["id"]] = node
     
