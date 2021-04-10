@@ -4,9 +4,9 @@
 - Hiện tại chỉ có cách chuyển dữ liệu từ PVO sang PVOCV chứ không có cách để chuyển dữ liệu từ PVOCV sang PVO. Mình sẽ cố gắng để có thể chuyển dữ liệu từ PVOCV sang PVO Web chính thức của thầy để đảm bảo quyền lợi cho người dùng, nhưng mình không hứa trước được.
 ## Đăng kí tài khoản
 - Vào http://64.154.38.216:5000/
-- Nhập username và password mà bạn muốn (lưu ý không nên chọn username / password liên quan đến thông tin cá nhân, đề phòng trường hợp bị kẻ xấu đột nhập tấn công).
+- Nhập username và password mà bạn muốn (lưu ý không nên chọn username / password liên quan đến thông tin cá nhân, đề phòng trường hợp bị kẻ xấu tấn công server).
 - Nhấn Register để tạo tài khoản và tự động đăng nhập lần đầu.
-- Lưu ý rằng nếu bạn quên tên tài khoản hoặc mật khẩu thì không có cách nào hồi phục lại tài khoản.
+- Lưu ý rằng nếu bạn quên tên tài khoản hoặc mật khẩu thì không có cách nào khôi phục lại tài khoản.
 ## Nạp dữ liệu từ PVO vào PVOCV
 - Lưu ý: Khi nạp dữ liệu từ PVO vào PVOCV, dữ liệu hiện tại của bạn ở PVOCV sẽ bị xóa toàn bộ và được thay thế bằng dữ liệu trong PVO
 - Tải tệp `converter.exe` tại [đây](https://drive.google.com/file/d/1yBGy-4lw7Pe4A546ei_G3lyRrdy3Onwg/view?usp=sharing)
