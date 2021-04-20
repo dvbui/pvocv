@@ -1,4 +1,7 @@
 from flask import *
+from io import BytesIO
+from werkzeug.utils import secure_filename
+import os
 import json
 import register, add_node, search_node, add_link, get_link_type
 import update_node, delete_node
@@ -7,6 +10,7 @@ import delete_link
 import node_overview, pvo_overview
 import get_orphan_node
 import load_backup, get_backup
+import converter
 
 
 # setting constants up
@@ -14,9 +18,12 @@ app = Flask(__name__)
 with open("info.json", "r") as f:
     data = json.load(f)
     app.secret_key = data["app_secret_key"]
-
+    app.config["UPLOAD_FOLDER"] = data["upload_folder"]
 
 common_methods = ["POST", "GET"]
+
+def allowed_file(filename, ALLOWED_EXTENSIONS):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
 def index():
@@ -50,8 +57,43 @@ def add_node_page():
     total += render_template("add_node.html",username=session.get("username"), password=session.get("password"))
     total += render_template("footer.html")
     return total
+    
+@app.route("/add_concept_page")
+def add_concept_page():
+    """
+    This function represents the Add Concept page
+    The user should be logged in when using this page
+    Returns
+    -------
+    str
 
-@app.route("/link_node_page", methods=["POST", "GET"])
+    """
+    if not register.check_user_pass(session.get("username"), session.get("password")):
+        return redirect(url_for('index'))
+    total = render_template("pvo.html")
+    total += render_template("add_node.html",username=session.get("username"), password=session.get("password"), node_type=0, node_type_name="Concept")
+    total += render_template("footer.html")
+    return total
+
+
+@app.route("/add_example_page")
+def add_example_page():
+    """
+    This function represents the Add Example page
+    The user should be logged in when using this page
+    Returns
+    -------
+    str
+
+    """
+    if not register.check_user_pass(session.get("username"), session.get("password")):
+        return redirect(url_for('index'))
+    total = render_template("pvo.html")
+    total += render_template("add_node.html",username=session.get("username"), password=session.get("password"), node_type=1, node_type_name="Example")
+    total += render_template("footer.html")
+    return total
+
+@app.route("/link_node_page", methods=common_methods)
 def link_node_page():
     """
     This function represents the Link Node page
@@ -67,8 +109,47 @@ def link_node_page():
     total += render_template("link_node.html",username=session.get("username"),password=session.get("password"))
     total += render_template("footer.html")
     return total
+    
+@app.route("/link_concept_concept_page", methods=common_methods)
+def link_concept_concept_page():
+    """
+    This function represents the Link Concept-Concept page
+    The user should be logged in when using this page
+    Returns
+    -------
+    str
+        
+    """
+    if not register.check_user_pass(session.get("username"), session.get("password")):
+        return redirect(url_for('index'))
+    total = render_template("pvo.html")
+    total += render_template("link_node.html",username=session.get("username"),password=session.get("password"), 
+                             rel_name="Concept-Concept", node_1_type_name="Parent Concept", node_2_type_name="Child Concept", 
+                             node1_type=0, node2_type=0)
+    total += render_template("footer.html")
+    return total
+    
+@app.route("/link_example_concept_page", methods=common_methods)
+def link_example_concept_page():
+    """
+    This function represents the Link Example-Concept page
+    The user should be logged in when using this page
+    Returns
+    -------
+    str
+        
+    """
+    if not register.check_user_pass(session.get("username"), session.get("password")):
+        return redirect(url_for('index'))
+    total = render_template("pvo.html")
+    total += render_template("link_node.html",username=session.get("username"),password=session.get("password"), 
+                             rel_name="Example-Concept", node_1_type_name="Concept", node_2_type_name="Example", 
+                             node1_type=0, node2_type=1)
+    total += render_template("footer.html")
+    return total
 
-@app.route("/edit_node_page", methods=["POST", "GET"])
+
+@app.route("/edit_node_page", methods=common_methods)
 def edit_node_page():
     """
     This function represents the Edit Node page
@@ -103,7 +184,7 @@ def orphan_node_page():
     total += render_template("footer.html")
     return total
 
-@app.route("/visualizer", methods=["POST", "GET"])
+@app.route("/visualizer", methods=common_methods)
 def visualizer_page():
     """
     This function outputs the graph containing all Nodes and Edges in the user's PVO
@@ -120,7 +201,7 @@ def visualizer_page():
     total += render_template("footer.html")
     return total
 
-@app.route("/backup", methods=["POST", "GET"])
+@app.route("/backup", methods=common_methods)
 def backup_page():
     """
     This function outputs the backup page
@@ -132,12 +213,59 @@ def backup_page():
     """
     if not register.check_user_pass(session.get("username"), session.get("password")):
         return redirect(url_for('index'))
+    def mdb_file_processor():
+        if request.method == 'POST':
+            # check if the post request has the file part
+            if 'mdb_file' not in request.files:
+                return
+            file = request.files['mdb_file']
+            # if user does not select file, browser also
+            # submit an empty part without filename
+            if file.filename == '':
+                flash('No selected file')
+                return
+            if file and allowed_file(file.filename, ["mdb"]):
+                filename = secure_filename(session.get("username") + file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                result = converter.load_mdb_file(session.get("username"), session.get("password"), file_path)
+                if result:
+                    flash("Your data have been loaded")
+                os.remove(file_path)
+    
+    def csv_file_processor():
+        if request.method == 'POST':
+            # check if the post request has the file part
+            if 'file1' not in request.files or 'file2' not in request.files:
+                return
+            file1 = request.files['file1']
+            file2 = request.files['file2']
+            # if user does not select file, browser also
+            # submit an empty part without filename
+            if file1.filename == '' or file2.filename == "":
+                flash('No selected file')
+                return
+            if file1 and allowed_file(file1.filename, ["csv"]) and file2 and allowed_file(file2.filename, ["csv"]):
+                file1name = secure_filename(session.get("username") + "1" + file1.filename)
+                file2name = secure_filename(session.get("username") + "2" + file2.filename)
+                file_1_path = os.path.join(app.config['UPLOAD_FOLDER'], file1name)
+                file_2_path = os.path.join(app.config['UPLOAD_FOLDER'], file2name)
+                file1.save(file_1_path)
+                file2.save(file_2_path)
+                result = load_backup.from_file(session.get("username"), session.get("password"), file_1_path, file_2_path)
+                if result:
+                    flash("Your data have been loaded")
+                os.remove(file_1_path)
+                os.remove(file_2_path)
+    
+    mdb_file_processor()
+    csv_file_processor()
     total = render_template("pvo.html")
     total += render_template("backup.html",username=session.get("username"), password=session.get("password"))
     total += render_template("footer.html")
     return total
 
-
+    
 
 
 
@@ -382,3 +510,44 @@ def load_backup_api():
     """
     result = load_backup.main(request.values["username"], request.values["password"], request.values["node_info"], request.values["edge_info"])
     return {"result": result}
+
+@app.route("/file1.csv", methods=common_methods)
+def file1_api():
+    """
+    This function outputs the first back-up csv file
+    Returns
+    -------
+    str
+        
+    """
+    result = get_backup.main(session.get("username"), session.get("password"))
+    """
+    The following code is adapted from https://stackoverflow.com/questions/35710361/python-flask-send-file-stringio-blank-files
+    """
+    result = get_backup.main(session.get("username"), session.get("password"))
+    buffer = BytesIO()
+    buffer.write(result["node_info"].encode('utf-8'))
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True,
+                     attachment_filename='file1.csv',
+                     mimetype='text/csv')
+
+@app.route("/file2.csv", methods=common_methods) 
+def file2_api():
+    """
+    This function outputs the second back-up csv file
+    Returns
+    -------
+    str
+        
+    """
+    result = get_backup.main(session.get("username"), session.get("password"))
+    """
+    The following code is adapted from https://stackoverflow.com/questions/35710361/python-flask-send-file-stringio-blank-files
+    """
+    buffer = BytesIO()
+    buffer.write(result["edge_info"].encode('utf-8'))
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True,
+                     attachment_filename='file2.csv',
+                     mimetype='text/csv')

@@ -1,39 +1,35 @@
+
 <input type="hidden" id="username" value="{{ username }}"/>
 <input type="hidden" id="password" value="{{ password }}"/>
+<h3>Add {{ rel_name }} Relation</h3>
 <div id="link_node">
     <div id="link_node_search_bar">
-        Parent Type: 
-        <select id="link_node1_type">
-            <option value=0>Concept</option>
-            <option value=1>Example</option>
-        </select>
-        Content: <input type="text" id="link_node1_content">
-        Usage Note: <input type="text" id="link_node1_usage">
-        Media: <input type="text" id="link_node1_media">
-        Keyword: <input type="text" id="link_node1_keyword">
-        Source: <input type="text" id="link_node1_source">
-        VNese: <input type="text" id="link_node1_vn">
-        <br>
-        Child Type: 
-        <select id="link_node2_type">
-            <option value=0>Concept</option>
-            <option value=1>Example</option>
-        </select>
+        Search {{ node_2_type_name }}:<br>
+        <input type="hidden" id="link_node2_type" value="{{ node2_type }}"/>
         Content: <input type="text" id="link_node2_content">
         Usage Note: <input type="text" id="link_node2_usage">
         Media: <input type="text" id="link_node2_media">
         Keyword: <input type="text" id="link_node2_keyword">
         Source: <input type="text" id="link_node2_source">
         VNese: <input type="text" id="link_node2_vn">
+        <br>
+        Search {{ node_1_type_name }}:<br>
+        <input type="hidden" id="link_node1_type" value="{{ node1_type }}"/>
+        Content: <input type="text" id="link_node1_content">
+        Usage Note: <input type="text" id="link_node1_usage">
+        Media: <input type="text" id="link_node1_media">
+        Keyword: <input type="text" id="link_node1_keyword">
+        Source: <input type="text" id="link_node1_source">
+        VNese: <input type="text" id="link_node1_vn">
     </div>
-    <h3>Parent</h3>
-    <div id="link_node_parent_candidates">
-    </div>
-    <h3>Child</h3>
+    <h3>{{ node_2_type_name }}</h3>
     <div id="link_node_child_candidates">
     </div>
+    <h3>{{ node_1_type_name }}</h3>
+    <div id="link_node_parent_candidates">
+    </div>
     <div id="link_node_actual">
-        Link Type: <select id="link_node_type">
+        Relation: <select id="link_node_type">
         </select>
         <button id="link_node_btn">Link</button>
     </div>

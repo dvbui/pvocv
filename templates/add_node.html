@@ -1,15 +1,10 @@
-<title>Add Node</title>
+<title>Add {{ node_type_name }}</title>
 <input type="hidden" id="username" value="{{ username }}"/>
 <input type="hidden" id="password" value="{{ password }}"/>
 <div id="add_node">
     <div style="float: left">
-        <h3>Add Node</h3>
-        Node Type: 
-        <select id="add_node_node_type">
-            <option value=0 selected>Concept</option>
-            <option value=1>Example</option>
-        </select>
-        <br>
+        <h3>Add {{ node_type_name }}</h3>
+        <input type="hidden" id="add_node_node_type" value={{ node_type }}>
         Content: <textarea id="add_node_content"></textarea><br>
         Usage Note: <textarea id="add_node_usage"></textarea><br>
         Media: <textarea id="add_node_media"></textarea><br>
