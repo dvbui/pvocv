@@ -60,7 +60,7 @@ def update_edge(username, password, edge):
 
 def main(username, password, node_info, edge_info):
     """
-        This function returns everything that is in a user PVO in a form of csv strings
+        This function update the user's data based on those provided in node_info and edge_info
         Parameters
         ----------
             username : str
@@ -127,3 +127,13 @@ def main(username, password, node_info, edge_info):
         update_edge(username, password, e)
     
     return True
+ 
+ 
+def from_file(username, password, node_file_path, edge_file_path):
+    with open(node_file_path, "r") as f:
+        node_info = f.read()
+    with open(edge_file_path, "r") as f:
+        edge_info = f.read()
+    print(node_info)
+    print(edge_info)
+    return main(username, password, node_info, edge_info)

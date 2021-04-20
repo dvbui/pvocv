@@ -30,7 +30,7 @@
             let status = document.getElementById("login_status");
             // redirect the user to the correct page, or inform the user that
             // the provided info is invalid
-            if (result) window.location.href = "./add_node_page";
+            if (result) window.location.href = "./add_concept_page";
             else status.innerHTML = "Invalid credentials";
         }
     };
@@ -59,7 +59,7 @@
                     "username": name,
                     "password": pass,
                 }, true));
-                request.onload = (e) => window.location.href = "./add_node_page";
+                request.onload = (e) => window.location.href = "./add_concept_page";
                 request.send(null);
             } else {
                 status.innerHTML = "The username has been used";

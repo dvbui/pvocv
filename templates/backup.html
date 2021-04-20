@@ -1,13 +1,34 @@
 <input type="hidden" id="username" value="{{ username }}"/>
 <input type="hidden" id="password" value="{{ password }}"/>
+<h2>Get Backup Files</h2>
+<a href="file1.csv">Download File 1</a>
+<a href="file2.csv">Download File 2</a>
+<h2>Nạp dữ liệu từ File 1 và File 2</h2>
 <div id="backup_div">
-    File 1: <textarea id="node_info"></textarea><br>
-    File 2: <textarea id="edge_info"></textarea><br>
-    <button id="backup_load">Load</button>
-    <div id="load_status">
-
-    </div>
+    <form method=post enctype=multipart/form-data>
+      File 1: <input type=file name=file1><br>
+      File 2: <input type=file name=file2><br>
+      <input type=submit id="submit_csv" value=Upload>
+    </form>
 </div>
+<h2>Nạp dữ liệu từ PVO Offline</h2>
+<div id="backup_from_old_pvo">
+    <!--- Adapted from https://flask.palletsprojects.com/en/1.1.x/patterns/fileuploads/--->
+    <form method=post enctype=multipart/form-data>
+      File .mdb: <input type=file name=mdb_file><br>
+      <input type=submit id="submit_mdb" value=Upload>
+    </form>
+</div>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+<!--- Deprecated
 <script type="module" defer>
     import { dictToURI } from "./static/js/dictToURI.js";
     // initializes important values
@@ -31,12 +52,8 @@
     document.getElementById("backup_load").onclick = (e) => {
         let node_info = document.getElementById("node_info").value;
         let edge_info = document.getElementById("edge_info").value;
-        request.open("GET", "./load_backup?"+dictToURI({
-            username: username,
-            password: password,
-            edge_info: edge_info,
-            node_info: node_info
-        }));
+        request.open("POST", "./load_backup");
+        request.setRequestHeader("Content-Type", "application/json");
         request.onload = (e) => {
             let result = JSON.parse(request.responseText)["result"];
             if (result)
@@ -44,6 +61,12 @@
             else
                 document.getElementById("load_status").innerHTML = "Error!";
         }
-        request.send(null);
+        request.send(JSON.stringify({
+            username: username,
+            password: password,
+            edge_info: edge_info,
+            node_info: node_info
+        }));
     }
 </script>
+---->

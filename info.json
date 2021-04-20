@@ -3,5 +3,6 @@
     "db_name": "pvo",
     "db_user": "root",
     "db_pass": "",
-    "app_secret_key": "icecream"
+    "app_secret_key": "icecream",
+    "upload_folder": "./upload"
 }
