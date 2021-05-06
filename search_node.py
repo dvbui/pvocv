@@ -23,8 +23,8 @@ def beautify(s):
     s2 = []
     for bold in soup.find_all("strong"):
         # ensure that there's no None in s2
-        if bold is not None and bold.string is not None:
-            s2.append(bold.string)
+        if bold is not None and bold.text is not None:
+            s2.append(bold.text)
     s2 = " ".join(s2)
     if s2!="":
         return s2
