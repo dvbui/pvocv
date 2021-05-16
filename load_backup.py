@@ -8,20 +8,20 @@ import search_node
 import add_link
 from bs4 import BeautifulSoup
 
-"""
-def beautify(s):
-    This function de-escaped a string
+
+def standardize(s):
+    """
+    This function removes characters that may mess things up with MySQL
     Parameters
     ----------
         s : str
-            An string escaped by the textbox
+            A string
     Returns
     -------
         str
-            A de-escaped string
-    soup = BeautifulSoup(s, 'html.parser')
-    return soup.get_text()
-"""
+            A string without '\\'
+    """
+    return s.translate({ord('\\'): None})
 
 def update_node(username, password, node):
     """
@@ -102,6 +102,8 @@ def main(username, password, node_info, edge_info):
         for i in node:
             if node[i] is None:
                 node[i] = ""
+            if type(node[i]) == str:
+                node[i] = standardize(node[i])
         
         nodes[node["id"]] = node
     
