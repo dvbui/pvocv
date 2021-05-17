@@ -52,10 +52,10 @@ def update_edge(username, password, edge):
     """
     node = edge["node1"]
     node1_id = search_node.main(username, password, None, node["content"], node["type"], node["keyword"],
-                   node["usage_note"], node["vn"], node["source"], node["media"])[0]["id"]
+                   node["usage_note"], node["vn"], node["source"], node["media"], True)[0]["id"]
     node = edge["node2"]
     node2_id = search_node.main(username, password, None, node["content"], node["type"], node["keyword"],
-                   node["usage_note"], node["vn"], node["source"], node["media"])[0]["id"]
+                   node["usage_note"], node["vn"], node["source"], node["media"], True)[0]["id"]
     add_link.main(username, password, node1_id, node2_id, edge["type"])
 
 def main(username, password, node_info, edge_info):

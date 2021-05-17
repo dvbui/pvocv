@@ -30,7 +30,7 @@ def beautify(s):
         return s2
     return s1
 
-def main(username, password, id=None, content="", node_type="", keyword="", usage_note="", vn="", source="", media=""):
+def main(username, password, id=None, content="", node_type="", keyword="", usage_note="", vn="", source="", media="", exact=False):
     """
     This function finds the nodes that satisfy the given info
     The info (except username, password, id) could be given in partial form
@@ -81,7 +81,10 @@ def main(username, password, id=None, content="", node_type="", keyword="", usag
         AND content_text LIKE %s AND keyword LIKE %s AND usage_note_text LIKE %s
         AND vn LIKE %s AND source LIKE %s
         """
-        data = (user_id, node_type, node_type, "", "%"+content+"%", "%"+keyword+"%", "%"+usage_note+"%", "%"+vn+"%", "%"+source+"%")
+        if not exact:
+            data = (user_id, node_type, node_type, "", "%"+content+"%", "%"+keyword+"%", "%"+usage_note+"%", "%"+vn+"%", "%"+source+"%")
+        else:
+            data = (user_id, node_type, node_type, "", content, keyword, usage_note, vn, source)
     
     query_result = database.query(query, data)
     result = []
